@@ -1,32 +1,20 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px 20px;
-  }
-  
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .nav-links {
-    list-style: none;
-    display: flex;
-    gap: 15px;
-  }
-  
-  .nav-links a {
+    background: #007bff;
+    padding: 10px;
+    text-align: center;
+}
+
+.navbar a {
     color: white;
+    margin: 0 10px;
     text-decoration: none;
-  }
-  
-  button {
+    font-weight: bold;
+}
+
+.navbar button {
     background: red;
     color: white;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
-  }
-  
+}

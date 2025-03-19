@@ -1,51 +1,79 @@
 package com.smartassetadvisor.service;
 
-import com.smartassetadvisor.dto.UserDto;
+import com.smartassetadvisor.dto.AuthRequest;
+import com.smartassetadvisor.dto.AuthResponse;
 import com.smartassetadvisor.model.User;
 import com.smartassetadvisor.repository.UserRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.smartassetadvisor.config.JwtUtil;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Optional;
 
 @Service
-public class AuthService {
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final String SECRET_KEY = "your_secret_key";
+public class AuthService implements UserDetailsService { 
 
-    public AuthService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private AuthenticationManager authenticationManager; // No direct injection
+
+    @Autowired
+    public void setAuthenticationManager(@Lazy AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
     }
 
-    public String signup(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return generateToken(user.getEmail());
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    public String login(String email, String password) {
+    // ✅ Load User by Username (For Authentication)
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
-            return generateToken(email);
-        }
-        throw new RuntimeException("Invalid credentials");
+        return user.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
-    private String generateToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
+    // ✅ Register User
+    public AuthResponse register(AuthRequest request) {
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // Encrypt password
+        user.setAge(request.getAge());
+        user.setOccupation(request.getOccupation());
+        user.setAnnualIncome(Double.parseDouble(request.getAnnualIncome())); // ✅ Convert String to Double
+        user.setRiskCategory(request.getRiskCategory());
+        user.setInvestmentGoals(request.getInvestmentGoals());
+
+        userRepository.save(user);
+
+        // Generate JWT Token
+        UserDetails userDetails = loadUserByUsername(request.getEmail());
+        String token = jwtUtil.generateToken(userDetails);
+
+        return new AuthResponse(token, "User registered successfully!");
     }
 
-    public String signup(UserDto userDto) {
-        throw new UnsupportedOperationException("Unimplemented method 'signup'");
+    // ✅ Login User
+    public AuthResponse login(AuthRequest request) {
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
+        UserDetails userDetails = loadUserByUsername(request.getEmail());
+        String token = jwtUtil.generateToken(userDetails);
+
+        return new AuthResponse(token, "Login successful!");
     }
 }
