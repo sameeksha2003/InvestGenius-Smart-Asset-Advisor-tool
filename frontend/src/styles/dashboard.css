@@ -1,0 +1,31 @@
+.dashboard {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    width: 80%;
+    margin: 20px auto;
+    color: white;
+  }
+  
+  .investment-form, .investment-recommendations, .market-mood {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+  }
+  
+  input, button {
+    padding: 10px;
+    margin: 5px;
+    width: 80%;
+    border: none;
+    border-radius: 5px;
+  }
+  
+  button {
+    background: green;
+    color: white;
+    cursor: pointer;
+  }
+  
