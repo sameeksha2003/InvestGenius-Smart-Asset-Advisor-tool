@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor  // ✅ Automatically generates the constructor with all fields
+@AllArgsConstructor  
 public class AuthResponse {
     private String token;
     private String message;

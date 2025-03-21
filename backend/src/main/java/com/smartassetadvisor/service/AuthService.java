@@ -9,6 +9,7 @@ import com.smartassetadvisor.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,64 +17,63 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
-public class AuthService implements UserDetailsService { 
+public class AuthService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    private AuthenticationManager authenticationManager; // No direct injection
-
-    @Autowired
-    public void setAuthenticationManager(@Lazy AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, 
+                       @Lazy AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    // ✅ Load User by Username (For Authentication)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByEmail(email);
-        return user.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
-
-    // ✅ Register User
     public AuthResponse register(AuthRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return new AuthResponse(null, "Email is already in use!");
+        }
+
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // Encrypt password
+        user.setPassword(passwordEncoder.encode(request.getPassword())); 
         user.setAge(request.getAge());
         user.setOccupation(request.getOccupation());
-        user.setAnnualIncome(Double.parseDouble(request.getAnnualIncome())); // ✅ Convert String to Double
+        user.setAnnualIncome(Double.parseDouble(request.getAnnualIncome())); 
         user.setRiskCategory(request.getRiskCategory());
         user.setInvestmentGoals(request.getInvestmentGoals());
 
         userRepository.save(user);
-
-        // Generate JWT Token
         UserDetails userDetails = loadUserByUsername(request.getEmail());
         String token = jwtUtil.generateToken(userDetails);
 
         return new AuthResponse(token, "User registered successfully!");
     }
 
-    // ✅ Login User
     public AuthResponse login(AuthRequest request) {
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
 
-        UserDetails userDetails = loadUserByUsername(request.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
+            UserDetails userDetails = loadUserByUsername(request.getEmail());
+            String token = jwtUtil.generateToken(userDetails);
 
-        return new AuthResponse(token, "Login successful!");
+            return new AuthResponse(token, "Login successful!");
+        } catch (BadCredentialsException e) {
+            return new AuthResponse(null, "Invalid email or password!");
+        }
     }
 }

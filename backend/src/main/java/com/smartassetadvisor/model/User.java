@@ -8,7 +8,7 @@ import java.util.Collections;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails { // ✅ Implements UserDetails
+public class User implements UserDetails { 
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,10 +22,7 @@ public class User implements UserDetails { // ✅ Implements UserDetails
     private String riskCategory;
     private String investmentGoals;
 
-    // ✅ Default constructor
     public User() {}
-
-    // ✅ Constructor
     public User(String name, String email, String password, Integer age, String occupation, Double annualIncome, String riskCategory, String investmentGoals) {
         this.name = name;
         this.email = email;
@@ -36,11 +33,9 @@ public class User implements UserDetails { // ✅ Implements UserDetails
         this.riskCategory = riskCategory;
         this.investmentGoals = investmentGoals;
     }
-
-    // ✅ Implement UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // No roles for now
+        return Collections.emptyList(); 
     }
 
     @Override
@@ -49,7 +44,7 @@ public class User implements UserDetails { // ✅ Implements UserDetails
     }
 
     @Override
-    public String getUsername() { // Spring Security uses "username" instead of "email"
+    public String getUsername() { 
         return email;
     }
 
@@ -72,8 +67,6 @@ public class User implements UserDetails { // ✅ Implements UserDetails
     public boolean isEnabled() {
         return true;
     }
-
-    // ✅ Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }

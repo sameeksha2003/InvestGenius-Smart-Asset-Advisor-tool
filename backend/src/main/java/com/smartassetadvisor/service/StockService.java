@@ -25,7 +25,7 @@ public class StockService {
     
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonResponse = objectMapper.readTree(response); // ✅ Handles JSON parsing
+            JsonNode jsonResponse = objectMapper.readTree(response); 
             JsonNode globalQuote = jsonResponse.get("Global Quote");
     
             if (globalQuote == null) {

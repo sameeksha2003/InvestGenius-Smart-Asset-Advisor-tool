@@ -1,28 +1,20 @@
 package com.smartassetadvisor.controller;
 
-import com.smartassetadvisor.dto.InvestmentRecommendation;
-import com.smartassetadvisor.enums.InvestmentStrategy;
 import com.smartassetadvisor.service.InvestmentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/investments")
+@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/investment")
+@RequiredArgsConstructor
 public class InvestmentController {
+    
+    private final InvestmentService investmentService;
 
-    @Autowired
-    private InvestmentService investmentService;
-
-    @GetMapping("/{riskCategory}")
-    public List<InvestmentRecommendation> getInvestmentAdvice(@PathVariable String riskCategory) {
-        InvestmentStrategy strategy;
-        try {
-            strategy = InvestmentStrategy.valueOf(riskCategory.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid risk category: " + riskCategory);
-        }
-        return investmentService.getInvestmentAdvice(strategy);
+    @GetMapping("/advice")
+    public ResponseEntity<String> getInvestmentAdvice(@RequestParam String email) {
+        return ResponseEntity.ok(investmentService.getInvestmentAdvice(email));
     }
 }
