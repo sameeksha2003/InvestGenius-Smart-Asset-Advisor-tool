@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AuthService implements UserDetailsService {
@@ -54,7 +57,9 @@ System.out.println("Roles: " + jwtUtil.extractRoles(token));
 
     public AuthResponse login(LoginRequest request) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
         } catch (Exception e) {
             throw new UsernameNotFoundException("Invalid credentials");
         }
@@ -68,6 +73,7 @@ System.out.println("Roles: " + jwtUtil.extractRoles(token));
         return new AuthResponse(token);
     }
     
+    
 
     // ✅ Get User by Email
     public User getUserByEmail(String email) {
@@ -75,14 +81,16 @@ System.out.println("Roles: " + jwtUtil.extractRoles(token));
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // ✅ Load User by Username (Required for Spring Security)
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(), user.getPassword(), new ArrayList<>()
-        );
-    }
+public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));  // 🔥 Assign a default role
+
+    return new org.springframework.security.core.userdetails.User(
+            user.getEmail(), user.getPassword(), authorities
+    );
+}
+
 }

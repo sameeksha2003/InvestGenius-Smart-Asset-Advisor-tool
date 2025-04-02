@@ -1,6 +1,8 @@
 package com.smartassetadvisor.controller;
 
 import com.smartassetadvisor.service.InvestmentAdviceService;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,7 +15,8 @@ public class InvestmentAdviceController {
         this.investmentAdviceService = investmentAdviceService;
     }
 
-    @GetMapping("/advice/{userId}") // Use path variable for userId
+    @GetMapping("/advice")
+    @PreAuthorize("hasRole('USER')")
     public String getAdvice(@PathVariable Long userId) {
         return investmentAdviceService.getInvestmentAdvice(userId);
     }

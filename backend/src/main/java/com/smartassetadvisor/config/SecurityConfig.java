@@ -51,7 +51,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtF
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers("/api/investment/advice").authenticated()
+            .requestMatchers("/api/investment/advice").hasRole("USER")
             .anyRequest().authenticated()
         )
         .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

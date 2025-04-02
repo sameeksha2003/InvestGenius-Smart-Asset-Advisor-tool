@@ -3,12 +3,17 @@ package com.smartassetadvisor.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -19,14 +24,19 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expirationTime;
 
-    // ✅ Generate Token (Fixed: Accepts UserDetails, not User)
+    // ✅ Generate Token
     public String generateToken(UserDetails userDetails) {
+        List<String> roles = userDetails.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toList());  // ✅ Fixed list conversion
+
         return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // ✅ `getUsername()` works for UserDetails
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .compact();
+            .setSubject(userDetails.getUsername())
+            .claim("roles", roles)  // ✅ Store roles in JWT
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+            .signWith(SignatureAlgorithm.HS256, secret)
+            .compact();
     }
 
     // ✅ Extract Username (Email)
@@ -51,5 +61,15 @@ public class JwtUtil {
     // ✅ Check Expiry
     public boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    // ✅ Extract roles from JWT
+    public List<String> extractRoles(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("roles", new ArrayList<String>().getClass());  // ✅ Fixed list retrieval
     }
 }
