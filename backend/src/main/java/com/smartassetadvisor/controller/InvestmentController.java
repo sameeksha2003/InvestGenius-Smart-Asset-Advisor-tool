@@ -1,20 +1,23 @@
 package com.smartassetadvisor.controller;
 
 import com.smartassetadvisor.service.InvestmentService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping("/api/investment")
-@RequiredArgsConstructor
+@RequestMapping("/investment")
 public class InvestmentController {
-    
+
     private final InvestmentService investmentService;
 
-    @GetMapping("/advice")
-    public ResponseEntity<String> getInvestmentAdvice(@RequestParam String email) {
-        return ResponseEntity.ok(investmentService.getInvestmentAdvice(email));
+    public InvestmentController(InvestmentService investmentService) {
+        this.investmentService = investmentService;
+    }
+
+    @GetMapping("/analyze")
+    public String analyzeInvestment() {
+        investmentService.analyzeInvestment();
+        return "Investment analysis completed. Check logs for results.";
     }
 }

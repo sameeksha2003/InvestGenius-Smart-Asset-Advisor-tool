@@ -1,13 +1,17 @@
 package com.smartassetadvisor.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
-@AllArgsConstructor  
 public class AuthResponse {
     private String token;
-    private String message;
+
+    public AuthResponse(String token) {
+        this.token = token;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }

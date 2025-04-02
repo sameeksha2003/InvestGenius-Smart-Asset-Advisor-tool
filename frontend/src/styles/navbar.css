@@ -1,20 +1,18 @@
 .navbar {
-    background: #007bff;
-    padding: 10px;
-    text-align: center;
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .navbar a {
     color: white;
-    margin: 0 10px;
     text-decoration: none;
-    font-weight: bold;
+    margin: 0 15px;
 }
 
-.navbar button {
-    background: red;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
+.navbar a:hover {
+    text-decoration: underline;
 }

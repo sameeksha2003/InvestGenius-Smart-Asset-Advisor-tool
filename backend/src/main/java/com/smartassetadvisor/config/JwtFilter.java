@@ -1,63 +1,72 @@
 package com.smartassetadvisor.config;
 
-import com.smartassetadvisor.service.AuthService;
-import io.micrometer.common.lang.NonNull;
+import com.smartassetadvisor.config.JwtUtil;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
-@Component
+@Component  // ✅ Fixed spelling mistake
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private AuthService authService;
+    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain chain) throws ServletException, IOException {
-        
-        // Allow public endpoints without authentication
-        String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/auth/register") || requestURI.startsWith("/auth/login")) {
-            chain.doFilter(request, response);
-            return;
-        }
+protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+        throws ServletException, IOException {
+    String token = extractToken(request);
+    
+    if (token != null) {
+        try {
+            System.out.println("🔹 Extracted Token: " + token);
 
-        final String authorizationHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
+            String username = jwtUtil.extractUsername(token);
+            System.out.println("🔹 Extracted Username: " + username);
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(token);
-            System.out.println("Extracted username from token: " + username); 
-        }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = authService.loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtUtil.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                System.out.println("✅ Token is Valid!");
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
+                );
+            } else {
+                System.out.println("❌ Invalid Token!");
             }
+        } catch (Exception e) {
+            System.out.println("⚠️ JWT Authentication Failed: " + e.getMessage());
         }
+    } else {
+        System.out.println("⚠️ No Token Found in Request!");
+    }
 
-        chain.doFilter(request, response);
+    chain.doFilter(request, response);
+}
+
+
+    private String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

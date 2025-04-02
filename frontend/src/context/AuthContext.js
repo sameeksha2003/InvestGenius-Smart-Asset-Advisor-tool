@@ -1,47 +1,54 @@
-import { createContext, useState, useEffect, useContext } from "react";
-import axios from "axios";
+import { createContext, useState, useEffect } from "react";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [token, setToken] = useState(localStorage.getItem("token") || null);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            if (token) {
-                try {
-                    const response = await axios.get("http://localhost:5000/api/auth/user", {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setUser(response.data);
-                } catch (error) {
-                    console.error("Error fetching user:", error);
-                    setUser(null);
-                }
+        const storedUser = localStorage.getItem("user");
+        console.log("🔄 Loading stored user from localStorage:", storedUser);
+
+        if (storedUser) {
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                console.log("✅ Parsed user:", parsedUser);
+                setUser(parsedUser); // ✅ Ensures reactivity
+            } catch (error) {
+                console.error("❌ Error parsing user data:", error);
+                localStorage.removeItem("user");
             }
-        };
+        }
+    }, []);
 
-        fetchUser();
-    }, [token]);
-
-    const login = (newToken) => {
-        setToken(newToken);
-        localStorage.setItem("token", newToken);
+    const login = (userData) => {
+        console.log("🔥 Setting user in context:", userData);
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
     };
 
     const logout = () => {
-        setToken(null);
-        setUser(null);
+        console.log("🚪 Logging out...");
+        localStorage.removeItem("user");
         localStorage.removeItem("token");
+        setUser(null);
     };
 
+    useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (error) {
+                console.error("❌ Error parsing user data:", error);
+                localStorage.removeItem("user");
+            }
+        }
+    }, []);
+    
     return (
-        <AuthContext.Provider value={{ token, user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
 };
-
-export const useAuth = () => useContext(AuthContext);
-export default AuthContext;

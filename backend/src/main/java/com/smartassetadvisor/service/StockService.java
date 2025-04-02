@@ -11,10 +11,10 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class StockService {
 
-    @Value("${alphavantage.api.key}")
+    @Value("${alpha.vantage.api.key}")
     private String apiKey;
 
-    @Value("${alphavantage.base.url}")
+    @Value("${alpha.vantage.base.url}")
     private String baseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
