@@ -1,12 +1,14 @@
 package com.smartassetadvisor.controller;
 
 import com.smartassetadvisor.service.InvestmentService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/investment")
+@RequestMapping("/api/investment")
 public class InvestmentController {
 
     private final InvestmentService investmentService;
@@ -15,9 +17,14 @@ public class InvestmentController {
         this.investmentService = investmentService;
     }
 
-    @GetMapping("/analyze")
-    public String analyzeInvestment() {
-        investmentService.analyzeInvestment();
-        return "Investment analysis completed. Check logs for results.";
+    @GetMapping("/recommendations")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> getInvestmentRecommendations(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.badRequest().body("❌ User not authenticated.");
+        }
+
+        String email = userDetails.getUsername();
+        return ResponseEntity.ok(investmentService.getInvestmentRecommendations(email));
     }
 }

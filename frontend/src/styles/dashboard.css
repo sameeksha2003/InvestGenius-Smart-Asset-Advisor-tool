@@ -1,18 +1,72 @@
 .dashboard-container {
-    text-align: center;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #eceff1, #f5f5f5);
+    font-family: 'Arial', sans-serif;
 }
 
-.investment-advice-btn {
-    background-color: #28a745;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.dashboard-title {
+    font-size: 28px;
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    font-size: 18px;
+    color: #333;
+}
+
+.investment-advice {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.investment-strategy {
+    font-size: 18px;
+    color: #444;
+    margin-bottom: 10px;
+}
+
+.advice-box {
+    background: #e3f2fd;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.advice-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.recommendation-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 15px;
+    color: #444;
+}
+
+.investment-list {
+    list-style-type: none;
+    padding: 0;
     margin-top: 10px;
 }
 
-.investment-advice-btn:hover {
-    background-color: #218838;
+.investment-list li {
+    background: #f1f8e9;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 5px 0;
+    font-size: 16px;
 }
