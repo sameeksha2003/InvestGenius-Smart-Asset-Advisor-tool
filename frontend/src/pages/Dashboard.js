@@ -1,50 +1,72 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";  // 🚀 Import useNavigate
 import axios from "axios";
+import "../styles/dashboard.css";
 
 const Dashboard = () => {
-  const [advice, setAdvice] = useState(""); // State to store advice
-  const [loading, setLoading] = useState(true); // Track loading state
+  const navigate = useNavigate(); // 🚀 For redirecting user after logout
+  const [advice, setAdvice] = useState(""); 
+  const [loading, setLoading] = useState(true);
+  const [marketMood, setMarketMood] = useState("Neutral"); 
+  const [marketMoodImage, setMarketMoodImage] = useState("/images/market-mood.jpg");
 
   useEffect(() => {
     const fetchAdvice = async () => {
       try {
-        const token = localStorage.getItem("token"); // Get token
+        const token = localStorage.getItem("token"); 
         const response = await axios.get("http://localhost:5000/api/investment/advice", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         console.log("✅ Investment Advice Response:", response.data);
-        setAdvice(response.data); // Update advice state
+        setAdvice(response.data);
+
+        if (response.data.includes("Extreme Greed")) setMarketMood("Extreme Greed");
+        else if (response.data.includes("Greed")) setMarketMood("Greed");
+        else if (response.data.includes("Fear")) setMarketMood("Fear");
+        else if (response.data.includes("Extreme Fear")) setMarketMood("Extreme Fear");
+        else setMarketMood("Neutral");
+
       } catch (error) {
         console.error("❌ Error fetching investment advice:", error);
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
 
     fetchAdvice();
   }, []);
 
+  // 🚀 Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Clear user session
+    navigate("/login"); // Redirect to login page
+  };
+
   return (
     <div className="dashboard-container">
-      <h1>📊 Investment Dashboard</h1>
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">📊 Investment Dashboard</h1>
+        <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
+      </div>
 
       {loading ? (
-        <p>Loading investment advice...</p>
+        <p className="loading-text">Loading investment advice...</p>
       ) : (
         <div className="investment-advice">
           <h2>💡 Investment Advice</h2>
-          <p>
-            <strong>📊 Investment Strategy Based on Your Risk Profile & Market Conditions</strong>
-          </p>
-          <p>📈 {advice}</p> {/* Display the advice from backend here */}
+          <div className="advice-text" dangerouslySetInnerHTML={{ __html: advice }} />
 
-          <p>💡 <strong>Recommended Investments:</strong></p>
-          <ul>
-            <li>✅ Large Cap Stocks</li>
-            <li>✅ ETFs</li>
-            <li>✅ 60% Stocks, 30% Bonds, 10% Alternative Assets</li>
-          </ul>
+          <div className="market-mood">
+            <h3>📈 Market Mood</h3>
+            <p>Current market sentiment: <strong>{marketMood}</strong></p>
+            <img 
+              src={marketMoodImage} 
+              alt="Market Mood" 
+              className="market-mood-img"
+              onError={() => setMarketMoodImage("/images/default-market-mood.jpg")} 
+            />
+          </div>
         </div>
       )}
     </div>
