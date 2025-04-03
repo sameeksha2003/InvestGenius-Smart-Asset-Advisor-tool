@@ -1,23 +1,47 @@
 package com.smartassetadvisor.controller;
 
+import com.smartassetadvisor.model.User;
+import com.smartassetadvisor.repository.UserRepository;
 import com.smartassetadvisor.service.InvestmentAdviceService;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/investment") // Updated to match frontend request URL
 public class InvestmentAdviceController {
-
+    @Autowired
     private final InvestmentAdviceService investmentAdviceService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public InvestmentAdviceController(InvestmentAdviceService investmentAdviceService) {
         this.investmentAdviceService = investmentAdviceService;
     }
 
-    @GetMapping("/advice")
-    @PreAuthorize("hasRole('USER')")
-    public String getAdvice(@PathVariable Long userId) {
-        return investmentAdviceService.getInvestmentAdvice(userId);
+   @GetMapping("/advice")
+@PreAuthorize("hasAuthority('ROLE_USER')")
+public ResponseEntity<?> getAdvice(@AuthenticationPrincipal UserDetails userDetails) {
+    if (userDetails == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
     }
+
+    String email = userDetails.getUsername();
+    User user = userRepository.findByEmail(email)
+                              .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    Long userId = user.getId(); 
+
+    // Call service method with userId
+    return ResponseEntity.ok(investmentAdviceService.getInvestmentAdvice(userId));
+}
+
+    
 }

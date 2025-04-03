@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component  // ✅ Fixed spelling mistake
 public class JwtFilter extends OncePerRequestFilter {
@@ -29,37 +30,41 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-        throws ServletException, IOException {
-    String token = extractToken(request);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        String token = extractToken(request);
+        
+        if (token != null) {
+            try {
+                System.out.println("🔹 Extracted Token: " + token);
     
-    if (token != null) {
-        try {
-            System.out.println("🔹 Extracted Token: " + token);
-
-            String username = jwtUtil.extractUsername(token);
-            System.out.println("🔹 Extracted Username: " + username);
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-            if (jwtUtil.validateToken(token, userDetails)) {
-                System.out.println("✅ Token is Valid!");
-
-                SecurityContextHolder.getContext().setAuthentication(
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-                );
-            } else {
-                System.out.println("❌ Invalid Token!");
+                String username = jwtUtil.extractUsername(token);
+                System.out.println("🔹 Extracted Username: " + username);
+    
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                List<String> roles = jwtUtil.extractRoles(token);  
+                System.out.println("🔹 Extracted Roles: " + roles); 
+    
+                if (jwtUtil.validateToken(token, userDetails)) {
+                    System.out.println("✅ Token is Valid!");
+    
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    System.out.println("❌ Invalid Token!");
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ JWT Authentication Failed: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("⚠️ JWT Authentication Failed: " + e.getMessage());
+        } else {
+            System.out.println("⚠️ No Token Found in Request!");
         }
-    } else {
-        System.out.println("⚠️ No Token Found in Request!");
+    
+        chain.doFilter(request, response);
     }
-
-    chain.doFilter(request, response);
-}
+    
 
 
     private String extractToken(HttpServletRequest request) {
