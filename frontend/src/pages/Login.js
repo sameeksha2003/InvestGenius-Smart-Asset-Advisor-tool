@@ -5,7 +5,7 @@ import axios from "axios";
 
 const Login = () => {
     const { login } = useContext(AuthContext);
-    const navigate = useNavigate(); // ✅ Safe to use here
+    const navigate = useNavigate(); 
     
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,31 +17,16 @@ const Login = () => {
     
             console.log("✅ Login response:", response.data);
     
-            const { token } = response.data; // ✅ Extract token
-            if (!token) {
-                console.error("❌ Error: No token received!");
+            const { token, user } = response.data; 
+            if (!token || !user) {
+                console.error("❌ Error: No token or user received!");
                 return;
             }
     
-            // ✅ Store token immediately
             localStorage.setItem("token", token);
-    
-            // 🔥 Fetch user details separately
-            const userResponse = await axios.get(`http://localhost:5000/api/auth/user?email=${email}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-    
-            console.log("✅ User details fetched:", userResponse.data);
-    
-            const user = userResponse.data;
-            if (!user) {
-                console.error("❌ Error: No user details received!");
-                return;
-            }
-    
-            // ✅ Store user and update AuthContext
             localStorage.setItem("user", JSON.stringify(user));
-            login(user); // ✅ Update AuthContext state
+    
+            login(user);
     
             console.log("✅ Navigating to /dashboard...");
             navigate("/dashboard");
@@ -51,8 +36,6 @@ const Login = () => {
         }
     };
     
-    
-
     return (
         <form onSubmit={handleLogin}>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />

@@ -50,7 +50,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtF
         .cors(cors -> cors.configurationSource(request -> new org.springframework.web.cors.CorsConfiguration().applyPermitDefaultValues()))
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/api/auth/**","/api/market-sentiment/**").permitAll()
             .requestMatchers("/api/investment/advice").hasAuthority("ROLE_USER") 
             .anyRequest().authenticated()
         )

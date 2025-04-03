@@ -30,13 +30,16 @@ public class JwtUtil {
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toList());  // ✅ Fixed list conversion
 
-        return Jwts.builder()
+            return Jwts.builder()
             .setSubject(userDetails.getUsername())
-            .claim("roles", roles)  // ✅ Store roles in JWT
+            .claim("roles", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()))  
             .setIssuedAt(new Date())
             .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
             .signWith(SignatureAlgorithm.HS256, secret)
             .compact();
+        
     }
 
     // ✅ Extract Username (Email)

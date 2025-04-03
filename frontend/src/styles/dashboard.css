@@ -1,80 +1,187 @@
-/* General Dashboard Styling */
+/* Dashboard Container */
 .dashboard-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #f5f5f5, #e3f2fd);
-    font-family: 'Arial', sans-serif;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Title */
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .dashboard-title {
-    font-size: 34px;
-    color: #007bff;
-    font-weight: bold;
-    margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
 }
 
-/* Loading Text */
-.loading-text {
-    font-size: 18px;
-    color: #555;
+.logout-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Advice Container */
+.logout-btn:hover {
+  background: #b02a37;
+}
+
+/* Loading Spinner */
+.loading-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Investment Advice */
 .investment-advice {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 80%;
-    max-width: 600px;
-    text-align: center;
-    transition: all 0.3s ease-in-out;
+  padding: 25px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 }
 
-.investment-advice:hover {
-    transform: scale(1.02);
+.investment-advice h2 {
+  color: #007bff;
+  font-size: 20px;
+  font-weight: bold;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
 }
 
-/* Advice Text */
-.advice-text {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
-    background: #e3f2fd;
-    padding: 12px;
-    border-radius: 8px;
-    margin: 10px 0;
-}
-
-/* Market Mood Section */
+/* Market Mood */
 .market-mood {
-    margin-top: 20px;
-    text-align: center;
+  margin-top: 20px;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Market Mood Image */
+.market-mood h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #343a40;
+}
+
+.market-mood p {
+  font-size: 16px;
+  color: #495057;
+}
+
 .market-mood-img {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 10px;
+  margin-top: 15px;
+  transition: transform 0.3s ease;
+}
+
+.market-mood-img:hover {
+  transform: scale(1.05);
+}
+
+/* Financial News */
+.financial-news {
+  margin-top: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.financial-news h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #343a40;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
+}
+
+.news-list {
+  list-style: none;
+  padding: 0;
+}
+
+.news-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+}
+
+.news-list li a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.news-list li a:hover {
+  color: #0056b3;
+}
+
+/* Sentiment Colors */
+.text-green {
+  color: #28a745;
+}
+
+.text-red {
+  color: #dc3545;
+}
+
+.text-yellow {
+  color: #ffc107;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .logout-btn {
+    margin-top: 10px;
     width: 100%;
-    max-width: 500px;
-    border-radius: 10px;
-    object-fit: cover;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+  }
 
-.mood-indicator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 15px 0;
-}
-
-.mood-indicator text {
-    fill: black;
-    font-size: 14px;
-    font-weight: bold;
+  .market-mood-img {
+    max-width: 100%;
+  }
 }

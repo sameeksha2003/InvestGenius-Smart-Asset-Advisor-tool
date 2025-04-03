@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 console.log("✅ Parsed user:", parsedUser);
-                setUser(parsedUser); // ✅ Ensures reactivity
+                setUser(parsedUser); 
             } catch (error) {
                 console.error("❌ Error parsing user data:", error);
                 localStorage.removeItem("user");

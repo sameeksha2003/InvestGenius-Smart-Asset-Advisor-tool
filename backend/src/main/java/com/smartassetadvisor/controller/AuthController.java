@@ -3,6 +3,7 @@ package com.smartassetadvisor.controller;
 import com.smartassetadvisor.dto.AuthRequest;
 import com.smartassetadvisor.dto.AuthResponse;
 import com.smartassetadvisor.dto.LoginRequest;
+import com.smartassetadvisor.dto.LoginResponse;
 import com.smartassetadvisor.model.User;
 import com.smartassetadvisor.service.AuthService;
 
@@ -25,10 +26,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(response); 
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    System.out.println("🔵 Login Attempt: " + request.getEmail());
+
+    LoginResponse response = authService.login(request);
+    if (response == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
+
+    System.out.println("🟢 Logged In User: " + response.getUser().getEmail());
+
+    return ResponseEntity.ok(response); 
+    }
+
 
     @GetMapping("/user")
     public ResponseEntity<User> getUserDetails(@RequestParam String email) {

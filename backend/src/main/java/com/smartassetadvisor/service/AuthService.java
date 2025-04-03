@@ -3,6 +3,7 @@ package com.smartassetadvisor.service;
 import com.smartassetadvisor.dto.AuthRequest;
 import com.smartassetadvisor.dto.AuthResponse;
 import com.smartassetadvisor.dto.LoginRequest;
+import com.smartassetadvisor.dto.LoginResponse;
 import com.smartassetadvisor.model.User;
 import com.smartassetadvisor.repository.UserRepository;
 import com.smartassetadvisor.config.JwtUtil;
@@ -38,34 +39,18 @@ public class AuthService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // ✅ User Registration
     public AuthResponse register(AuthRequest request) {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
-        userRepository.save(user);
-        
-        UserDetails userDetails = loadUserByUsername(user.getEmail()); // ✅ Use UserDetails
-        String token = jwtUtil.generateToken(userDetails); // ✅ Fix token generation
-
-        System.out.println("Decoded JWT: " + jwtUtil.extractUsername(token));
-System.out.println("Roles: " + jwtUtil.extractRoles(token));
-
-        return new AuthResponse(token);
-    }
-
-    public AuthResponse login(LoginRequest request) {
-        try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-        } catch (Exception e) {
-            throw new UsernameNotFoundException("Invalid credentials");
-        }
+        user.setAge(request.getAge());  // ✅ FIX: Setting age
+        user.setOccupation(request.getOccupation());  // ✅ FIX: Setting occupation
+        user.setAnnualIncome(request.getAnnualIncome());  // ✅ FIX: Setting annual income
+        user.setInvestmentGoal(request.getInvestmentGoals());  // ✅ FIX: Setting investment goal
+        user.setRiskCategory(request.getRiskCategory());  // ✅ FIX: Setting risk category
     
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        userRepository.save(user);
     
         UserDetails userDetails = loadUserByUsername(user.getEmail());
         String token = jwtUtil.generateToken(userDetails);
@@ -73,12 +58,32 @@ System.out.println("Roles: " + jwtUtil.extractRoles(token));
         return new AuthResponse(token);
     }
     
+
+    public LoginResponse login(LoginRequest request) {
+        System.out.println("🔵 Checking user: " + request.getEmail());
+    
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElse(null);
+    
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return null; 
+        }
+    
+        System.out.println("🟢 User found: " + user.getEmail());
+    
+        String token = jwtUtil.generateToken(new org.springframework.security.core.userdetails.User(
+        user.getEmail(), user.getPassword(), new ArrayList<>()));
+
+        
+        return new LoginResponse(token, user); // ✅ Return token + user
+    }
+    
     
 
-    // ✅ Get User by Email
     public User getUserByEmail(String email) {
+        System.out.println("🔍 Fetching user for email: " + email);
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            .orElse(null);
     }
 
     @Override
@@ -86,8 +91,7 @@ public UserDetails loadUserByUsername(String email) throws UsernameNotFoundExcep
     User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));  // 🔥 Assign a default role
-
+    List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
     return new org.springframework.security.core.userdetails.User(
             user.getEmail(), user.getPassword(), authorities
     );

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";  // 🚀 Import useNavigate
+import { useNavigate } from "react-router-dom";  
 import axios from "axios";
 import "../styles/dashboard.css";
 
 const Dashboard = () => {
-  const navigate = useNavigate(); // 🚀 For redirecting user after logout
+  const navigate = useNavigate(); 
   const [advice, setAdvice] = useState(""); 
   const [loading, setLoading] = useState(true);
   const [marketMood, setMarketMood] = useState("Neutral"); 
-  const [marketMoodImage, setMarketMoodImage] = useState("/images/market-mood.jpg");
+  const [marketMoodImage, setMarketMoodImage] = useState("../images/market-mood.jpg");
+  const [news, setNews] = useState([]); 
 
   useEffect(() => {
-    const fetchAdvice = async () => {
+    const fetchInvestmentAdvice = async () => {
       try {
         const token = localStorage.getItem("token"); 
         const response = await axios.get("http://localhost:5000/api/investment/advice", {
@@ -21,6 +22,7 @@ const Dashboard = () => {
         console.log("✅ Investment Advice Response:", response.data);
         setAdvice(response.data);
 
+        // Update Market Mood Based on Advice
         if (response.data.includes("Extreme Greed")) setMarketMood("Extreme Greed");
         else if (response.data.includes("Greed")) setMarketMood("Greed");
         else if (response.data.includes("Fear")) setMarketMood("Fear");
@@ -34,13 +36,41 @@ const Dashboard = () => {
       }
     };
 
-    fetchAdvice();
-  }, []);
+    const fetchMarketSentiment = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/market-sentiment/analyze");
+        console.log("✅ Market Sentiment Response:", response.data);
+        
+        setMarketMood(response.data.marketMood);  
+        setNews(response.data.summary);  
+        switch (response.data.marketMood) {
+          case "📈 Positive":
+            setMarketMoodImage("/images/positive-market.jpg");
+            break;
+          case "📉 Negative":
+            setMarketMoodImage("/images/negative-market.jpg");
+            break;
+          default:
+            setMarketMoodImage("../images/neutral-market.jpg");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching market sentiment:", error);
+      }
+    };
+    
 
-  // 🚀 Logout Function
+    fetchInvestmentAdvice();
+    fetchMarketSentiment();
+  }, []);
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Clear user session
-    navigate("/login"); // Redirect to login page
+    localStorage.removeItem("token"); 
+    navigate("/login"); 
+  };
+
+  const getSentimentColor = (sentiment) => {
+    if (sentiment === "positive") return "text-green-600";
+    if (sentiment === "negative") return "text-red-600";
+    return "text-gray-600";
   };
 
   return (
@@ -58,14 +88,32 @@ const Dashboard = () => {
           <div className="advice-text" dangerouslySetInnerHTML={{ __html: advice }} />
 
           <div className="market-mood">
-            <h3>📈 Market Mood</h3>
-            <p>Current market sentiment: <strong>{marketMood}</strong></p>
+            <h3>📈 Market Sentiment</h3>
+            <p>Current Market Mood: <strong>{marketMood}</strong></p>
             <img 
               src={marketMoodImage} 
               alt="Market Mood" 
               className="market-mood-img"
               onError={() => setMarketMoodImage("/images/default-market-mood.jpg")} 
             />
+          </div>
+
+          {/* 📰 Latest Financial News */}
+          {/* 📰 Market Sentiment Insights */}
+          <div className="financial-news">
+          <h3>📰 Market News Summary</h3>
+          <ul className="news-list">
+         {Array.isArray(news) ? (
+          news.map((item, index) => (
+          <li key={index}>🔹 {item}</li>
+           ))
+          ) : (
+        news?.split("• ").map((item, index) => (
+        item.trim() && <li key={index}>🔹 {item.trim()}</li>
+         ))
+        )}
+        </ul>
+
           </div>
         </div>
       )}
